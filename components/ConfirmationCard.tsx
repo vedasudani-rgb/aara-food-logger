@@ -124,7 +124,7 @@ export function ConfirmationCard({
   }, []);
 
   const contextLabel =
-    parsedMeal.context !== "home" && parsedMeal.context !== "unknown"
+    parsedMeal.context && parsedMeal.context !== "home" && parsedMeal.context !== "unknown"
       ? parsedMeal.context.replace("_", " ")
       : null;
 
@@ -190,7 +190,7 @@ export function ConfirmationCard({
     );
   }
 
-  const completenessLabel = parsedMeal.completeness !== "complete"
+  const completenessLabel = parsedMeal.completeness && parsedMeal.completeness !== "complete"
     ? COMPLETENESS_LABELS[parsedMeal.completeness]
     : null;
 

@@ -11,6 +11,10 @@ const BEHAVIORAL_PATTERNS = [
   /am i on track/i,
   /how.{0,15}going/i,
   /what do you think/i,
+  /am i eating (well|okay|enough|right|healthy|balanced)/i,
+  /is my (eating|diet|food|meals?) (okay|good|alright|fine|well|healthy|balanced)/i,
+  /how.{0,10}(diet|meals?) (going|looking|been)/i,
+  /am i (being|staying) (healthy|consistent|good|on track)/i,
 ];
 
 // Patterns that indicate a food/nutrition information question (not a meal log)

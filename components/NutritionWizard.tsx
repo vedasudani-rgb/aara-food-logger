@@ -37,6 +37,10 @@ export function NutritionWizard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ input: question, recentMeals }),
       });
+      if (!res.ok) {
+        setAnswer("Couldn't get an answer right now. Please try again.");
+        return;
+      }
       const data = await res.json();
       if (data.food_answer) {
         setAnswer(data.food_answer);

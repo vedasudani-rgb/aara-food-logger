@@ -96,7 +96,7 @@ function DayView({ date }: { date: string }) {
       // Food/behavioral answers belong in the Ask Aara wizard, not the log flow
       if (data.food_answer || data.behavioral_response) return;
       setParsedMeal(data);
-      setEditedItems([...data.items]);
+      setEditedItems(Array.isArray(data.items) ? [...data.items] : []);
       // Use the parsed meal type from the API (e.g. "for lunch I had...")
       if (data.meal_type && data.meal_type !== "unknown") {
         setPendingMealType(data.meal_type as MealType);

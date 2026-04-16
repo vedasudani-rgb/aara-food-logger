@@ -88,9 +88,6 @@ export default function HomePage() {
       // Food/behavioral answers belong in the Ask Aara wizard, not the log flow
       if (data.food_answer || data.behavioral_response) return;
 
-      setParsedMeal(data);
-      setEditedItems([...data.items]);
-
       // Use the parsed meal type from the API if the user didn't tap a specific slot
       // e.g. "for lunch I had..." → meal_type: "lunch"
       // Also infer from time_hint if meal_type isn't explicit
@@ -102,6 +99,8 @@ export default function HomePage() {
         }
       }
 
+      setParsedMeal(data);
+      setEditedItems(Array.isArray(data.items) ? [...data.items] : []);
       setSlotTapped(false);
     } catch {
       // silently fail — user can retype
