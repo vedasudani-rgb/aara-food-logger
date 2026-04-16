@@ -85,14 +85,28 @@ export async function parseMealWithGroq(input: string): Promise<ParsedMeal> {
   return JSON.parse(extractJson(text)) as ParsedMeal;
 }
 
-// Try Gemini first, fall back to Groq
+// Try Groq first (faster, avoids Gemini quota issues), fall back to Gemini
 export async function parseMeal(input: string): Promise<ParsedMeal> {
   try {
-    return await parseMealWithGemini(input);
-  } catch (geminiErr) {
-    console.warn("Gemini failed, trying Groq fallback:", geminiErr);
     return await parseMealWithGroq(input);
+  } catch (groqErr) {
+    console.warn("Groq failed, trying Gemini fallback:", groqErr);
+    return await parseMealWithGemini(input);
   }
+}
+
+// Generic Gemini text call — used as fallback when Groq is unavailable
+export async function callGeminiText(
+  prompt: string,
+  options?: { temperature?: number }
+): Promise<string> {
+  const genAI = getGeminiClient();
+  const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
+  const result = await model.generateContent({
+    contents: [{ role: "user", parts: [{ text: prompt }] }],
+    generationConfig: { temperature: options?.temperature ?? 0.3 },
+  });
+  return result.response.text();
 }
 
 export async function generateCoachSummary(mealsJson: string): Promise<string> {

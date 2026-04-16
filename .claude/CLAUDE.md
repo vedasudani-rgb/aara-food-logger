@@ -1,4 +1,4 @@
-# AI Food Logger — Current State (as of April 16, 2026, last updated April 16, 2026 — v2)
+# AI Food Logger — Current State (as of April 16, 2026, last updated April 16, 2026 — v3)
 
 **Thesis:** Capture anything, forgive everything, surface pattern not precision. Voice-first, guilt-free, South Indian food–aware.
 **User:** Megha (Chennai, vegetarian, home-cooked South Indian). **Coach:** Kavitha (needs behavioral signal, not calorie precision).
@@ -6,8 +6,9 @@
 ## Stack
 - **Next.js 14** (App Router) + **Tailwind CSS** (custom components — no shadcn/ui)
 - **Layout:** `max-w-md` (448px) centered, mobile-first
-- **Primary LLM:** Gemini 2.0 Flash (`@google/generative-ai`) — for meal parsing only. Key: `GEMINI_API_KEY`. Env var `GEMINI_MODEL` overrides model (default: `gemini-2.0-flash`).
-- **Secondary LLM:** Groq `llama-3.3-70b-versatile` (`GROQ_API_KEY`) — used as Gemini fallback for parse-meal AND as primary for coach summary, behavioral responses, food Q&A, re-engagement messages.
+- **Primary LLM:** Groq `llama-3.3-70b-versatile` (`GROQ_API_KEY`) — primary for all LLM calls: meal parsing, coach summary, behavioral responses, food Q&A, re-engagement messages.
+- **Fallback LLM:** Gemini 2.0 Flash (`@google/generative-ai`) — fallback when Groq is unavailable. Key: `GEMINI_API_KEY`. Env var `GEMINI_MODEL` overrides model (default: `gemini-2.0-flash`).
+- **Rate limits (free tier):** Groq 100k tokens/day rolling window; Gemini 15 req/min. Both can be exhausted under heavy testing — if parsing fails, wait a few minutes for the window to clear.
 - **Voice:** Web Speech API (`lang: "en-IN"`, `continuous: true`) — no key, no cost
 - **Storage:** localStorage only — `logs:YYYY-MM-DD` (array of MealEntry), `settings:user`
 
@@ -21,7 +22,7 @@ app/
   coach/page.tsx             # Coach dashboard (password: "kavitha") — all coach UI inlined here
   api/
     parse-meal/route.ts      # POST {input, recentMeals?} → routes to food Q&A | behavioral | meal parse
-    coach-summary/route.ts   # POST CoachSummaryInput → Groq summary (markdown)
+    coach-summary/route.ts   # POST CoachSummaryInput → Groq summary (markdown), Gemini fallback
     reengagement/route.ts    # POST {gap_days} → Gemini/Groq warm re-entry message
 
 components/
@@ -36,7 +37,7 @@ components/
 lib/
   types.ts                   # MealItem, MealEntry, ParsedMeal, UserProfile, CoachProfile
   storage.ts                 # localStorage CRUD — getMealsForDate/Week, saveMeal, updateMeal, deleteMeal, getDaysSinceLastLog
-  gemini.ts                  # parseMeal (Gemini→Groq), callGroq, generateCoachSummary, generateReengagement, generateFoodAnswer, generateBehavioralResponse
+  gemini.ts                  # parseMeal (Groq→Gemini), callGroq, callGeminiText, generateCoachSummary, generateReengagement, generateFoodAnswer, generateBehavioralResponse
   prompts.ts                 # PARSE_MEAL_PROMPT, buildCoachSummaryPrompt, buildReengagementPrompt, buildUserBehaviorPrompt, CoachSummaryInput type
   dates.ts                   # ISO week utils, extractISTMinutes, minutesToTimeStr, shortDayName/DateLabel
   seedData.ts                # April 1–15 2026 demo data — seeded into localStorage on first load
@@ -51,7 +52,7 @@ hooks/
 2. API route **classifies** input first:
    - **Food/nutrition question** (e.g. "how much protein in idli?") → `generateFoodAnswer` via Groq → returns `food_answer`
    - **Behavioral question** (e.g. "am I doing okay?") → `generateBehavioralResponse` via Groq, uses `recentMeals` from client → returns `behavioral_response`
-   - **Meal log** → `parseMeal` (Gemini first, Groq fallback) → returns `ParsedMeal` JSON
+   - **Meal log** → `parseMeal` (Groq first, Gemini fallback) → returns `ParsedMeal` JSON
 3. `ConfirmationCard` slides up with ChipEditor chips → user edits if needed → confirm → `saveMeal` → localStorage
 4. `NutritionWizard` FAB (fixed, bottom-right) handles food/behavioral questions inline without going through the log flow
 
@@ -166,6 +167,7 @@ Client passes `recentMeals` array for behavioral questions (localStorage is brow
 - Coach summary Behavioral Flags section was returning "Insufficient data" even with 16 days of data. Fixed by adding explicit behavioral flag derivation rules to `buildCoachSummaryPrompt` (gaps, low protein majority, late dinners, weekday/weekend divergence).
 - `handleTranscript` in `app/page.tsx` had an empty `[]` useCallback deps array, causing a stale `slotTapped` closure. Slot-tapped meal type was always overridden by the LLM's guess. Fixed by adding `slotTapped` to the deps array.
 - API parse failures were silently swallowed. Both `app/page.tsx` and `app/day/[date]/page.tsx` now expose a `parseError` state shown near the input bar.
+- `parseMeal` was Gemini-first, but Gemini's 15 RPM free-tier limit is easily hit during development, causing every parse to fail then fall back to Groq (double latency, double token spend). Swapped to Groq-first with Gemini as fallback. `coach-summary` route was Groq-only with no fallback; added `callGeminiText` helper and Gemini fallback so coach summary survives Groq rate-limit windows.
 
 ## Coach Dashboard (`app/coach/page.tsx`)
 All UI is inlined — no separate CoachDashboard component. Components:
@@ -183,7 +185,7 @@ All UI is inlined — no separate CoachDashboard component. Components:
 - `MealTimingCard` — avg breakfast/lunch/dinner chips, late meals (>11pm) flags, timing outliers (>90 min from avg)
 - `MarkdownSummary` — rendered markdown from Groq `buildCoachSummaryPrompt` call. Sections in order: Executive Summary (first), Completeness, Meal Timing, Protein Signal, Weekend Pattern, Behavioral Flags. Max 2 bullets per section, one sentence each.
 
-**Timeframe toggle:** 7 or 14 days. Auto-fetches Groq summary when ≥4 days logged. Polls every 60s. Coach summary API uses maxTokens: 1200. "Generate summary" button available in "no summary" state; "Retry" button in error state (both solid CTA-colored buttons).
+**Timeframe toggle:** 7 or 14 days. Auto-fetches summary when ≥4 days logged. Polls every 60s. Coach summary API uses maxTokens: 1200, tries Groq first with Gemini fallback. "Generate summary" button available in "no summary" state; "Retry" button in error state (both solid CTA-colored buttons).
 **Timing computation:** single `computeTimingDetails()` function feeds both the display cards and the `CoachSummaryInput` sent to the API — no divergence.
 
 ## Features beyond original spec

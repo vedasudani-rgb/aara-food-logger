@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { callGroq } from "@/lib/gemini";
+import { callGroq, callGeminiText } from "@/lib/gemini";
 import { buildCoachSummaryPrompt, CoachSummaryInput } from "@/lib/prompts";
+
+const SYSTEM = "You are a clinical nutrition coach assistant. Generate precise, data-driven summaries.";
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,11 +14,14 @@ export async function POST(req: NextRequest) {
     }
 
     const prompt = buildCoachSummaryPrompt(input);
-    const summary = await callGroq(
-      "You are a clinical nutrition coach assistant. Generate precise, data-driven summaries.",
-      prompt,
-      { temperature: 0.2, maxTokens: 1200 }
-    );
+
+    let summary: string;
+    try {
+      summary = await callGroq(SYSTEM, prompt, { temperature: 0.2, maxTokens: 1200 });
+    } catch (groqErr) {
+      console.warn("Groq coach-summary failed, trying Gemini fallback:", groqErr);
+      summary = await callGeminiText(`${SYSTEM}\n\n${prompt}`, { temperature: 0.2 });
+    }
 
     return NextResponse.json({ summary });
   } catch (err) {
