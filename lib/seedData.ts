@@ -890,7 +890,7 @@ const SEED_DATA: { date: string; meals: MealEntry[] }[] = [
     ],
   },
 
-  // ── April 15 (Wednesday, today) ── 1 meal so far
+  // ── April 15 (Wednesday) ── 3 meals · ~1510 kcal
   {
     date: "2026-04-15",
     meals: [
@@ -915,11 +915,83 @@ const SEED_DATA: { date: string; meals: MealEntry[] }[] = [
         meal_calories_estimate: 330,
         meal_calories_range: [270, 405],
       },
+      {
+        meal_id: "seed-0415-2",
+        timestamp_logged: "2026-04-15T13:00:00+05:30",
+        timestamp_meal: "2026-04-15T13:00:00+05:30",
+        logged_late: false,
+        raw_input: "rice sambar beans poriyal curd",
+        input_modality: "text",
+        meal_type: "lunch",
+        context: "home",
+        completeness: "complete",
+        calories_confidence: "medium",
+        quantity_certainty: "estimated",
+        edited_by_user: false,
+        items: [
+          { name: "Rice", quantity: "1.5 cups cooked", confidence: 0.85, inferred: false, category: "grain", protein_level: "low", calories_estimate: 295, calories_range: [245, 360] },
+          { name: "Sambar", quantity: "1 large bowl", confidence: 0.9, inferred: false, category: "protein", protein_level: "medium", calories_estimate: 70, calories_range: [50, 95] },
+          { name: "Beans poriyal", quantity: "1 medium bowl", confidence: 0.85, inferred: false, category: "vegetable", protein_level: "low", calories_estimate: 80, calories_range: [60, 105] },
+          { name: "Curd", quantity: "1 large bowl", confidence: 0.9, inferred: false, category: "dairy", protein_level: "medium", calories_estimate: 90, calories_range: [70, 115] },
+        ],
+        meal_calories_estimate: 535,
+        meal_calories_range: [425, 675],
+      },
+      {
+        meal_id: "seed-0415-3",
+        timestamp_logged: "2026-04-15T20:15:00+05:30",
+        timestamp_meal: "2026-04-15T20:15:00+05:30",
+        logged_late: false,
+        raw_input: "2 chapati dal tadka",
+        input_modality: "text",
+        meal_type: "dinner",
+        context: "home",
+        completeness: "complete",
+        calories_confidence: "medium",
+        quantity_certainty: "self_reported",
+        edited_by_user: false,
+        items: [
+          { name: "Chapati", quantity: "2 pieces", confidence: 0.95, inferred: false, category: "grain", protein_level: "low", calories_estimate: 200, calories_range: [175, 230] },
+          { name: "Dal tadka", quantity: "1 medium bowl", confidence: 0.85, inferred: false, category: "protein", protein_level: "high", calories_estimate: 195, calories_range: [155, 240] },
+          { name: "Curd", quantity: "1 small bowl", confidence: 0.9, inferred: false, category: "dairy", protein_level: "medium", calories_estimate: 65, calories_range: [50, 85] },
+        ],
+        meal_calories_estimate: 460,
+        meal_calories_range: [380, 555],
+      },
+    ],
+  },
+
+  // ── April 16 (Thursday, today) ── breakfast logged so far
+  {
+    date: "2026-04-16",
+    meals: [
+      {
+        meal_id: "seed-0416-1",
+        timestamp_logged: "2026-04-16T07:45:00+05:30",
+        timestamp_meal: "2026-04-16T07:45:00+05:30",
+        logged_late: false,
+        raw_input: "2 dosa sambar coconut chutney coffee",
+        input_modality: "voice",
+        meal_type: "breakfast",
+        context: "home",
+        completeness: "complete",
+        calories_confidence: "high",
+        quantity_certainty: "self_reported",
+        edited_by_user: false,
+        items: [
+          { name: "Dosa", quantity: "2 pieces", confidence: 0.95, inferred: false, category: "grain", protein_level: "low", calories_estimate: 280, calories_range: [240, 330] },
+          { name: "Sambar", quantity: "1 large bowl", confidence: 0.9, inferred: false, category: "protein", protein_level: "medium", calories_estimate: 70, calories_range: [50, 95] },
+          { name: "Coconut chutney", quantity: "1 medium bowl", confidence: 0.9, inferred: false, category: "fat", protein_level: "low", calories_estimate: 85, calories_range: [65, 110] },
+          { name: "Filter coffee", quantity: "1 cup", confidence: 0.95, inferred: false, category: "beverage", protein_level: "low", calories_estimate: 50, calories_range: [35, 65] },
+        ],
+        meal_calories_estimate: 485,
+        meal_calories_range: [390, 600],
+      },
     ],
   },
 ];
 
-const SEED_VERSION = "v2";
+const SEED_VERSION = "v3";
 const SEED_VERSION_KEY = "aara_seed_version";
 
 export function seedMockData(): void {
@@ -928,8 +1000,8 @@ export function seedMockData(): void {
   // Bump SEED_VERSION to force a re-seed with updated data
   if (localStorage.getItem(SEED_VERSION_KEY) === SEED_VERSION) return;
 
-  // Clear any previously seeded meal data for Apr 1–15
-  for (let i = 0; i <= 14; i++) {
+  // Clear any previously seeded meal data for Apr 1–16
+  for (let i = 0; i <= 15; i++) {
     const d = new Date("2026-04-01T12:00:00");
     d.setDate(d.getDate() + i);
     const y = d.getFullYear();

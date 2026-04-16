@@ -325,7 +325,7 @@ export default function HomePage() {
       )}
 
       {/* Snack nudge — appears ~4pm if no snacks logged */}
-      <SnackNudge meals={meals} onQuickAdd={handleSnackQuickAdd} forceShow />
+      <SnackNudge meals={meals} onQuickAdd={handleSnackQuickAdd} />
 
       {/* Timeline */}
       <div className="flex-1 px-4 overflow-y-auto">
