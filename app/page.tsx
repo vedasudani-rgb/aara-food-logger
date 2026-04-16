@@ -243,6 +243,13 @@ export default function HomePage() {
     [updateMeal]
   );
 
+  const handleUpdateContextNote = useCallback(
+    (meal_id: string, note: string) => {
+      updateMeal(meal_id, { context_note: note || undefined });
+    },
+    [updateMeal]
+  );
+
   // Snack nudge: quick-add a named snack through the normal confirm flow
   const handleSnackQuickAdd = useCallback(async (foodName: string) => {
     setPendingMealType("snack");
@@ -343,6 +350,7 @@ export default function HomePage() {
           onUpdateMeal={handleUpdateMeal}
           onMoveMealType={handleMoveMealType}
           onUpdateMealTimestamp={handleUpdateMealTimestamp}
+          onUpdateContextNote={handleUpdateContextNote}
         />
       </div>
 

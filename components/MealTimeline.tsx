@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { MealEntry, MealItem, MealType } from "@/lib/types";
 import { ChipEditor } from "@/components/ChipEditor";
 
@@ -18,9 +18,10 @@ interface MealTimelineProps {
   onUpdateMeal: (meal_id: string, items: MealItem[]) => void;
   onMoveMealType: (meal_id: string, newType: MealType) => void;
   onUpdateMealTimestamp: (meal_id: string, newTimestamp: string) => void;
+  onUpdateContextNote: (meal_id: string, note: string) => void;
 }
 
-export function MealTimeline({ meals, onAddMeal, onDeleteMeal, onUpdateMeal, onMoveMealType, onUpdateMealTimestamp }: MealTimelineProps) {
+export function MealTimeline({ meals, onAddMeal, onDeleteMeal, onUpdateMeal, onMoveMealType, onUpdateMealTimestamp, onUpdateContextNote }: MealTimelineProps) {
   const [detailMeal, setDetailMeal] = useState<MealEntry | null>(null);
   const [dragOverSlot, setDragOverSlot] = useState<MealType | null>(null);
 
@@ -104,6 +105,7 @@ export function MealTimeline({ meals, onAddMeal, onDeleteMeal, onUpdateMeal, onM
           onUpdate={(items) => onUpdateMeal(currentDetailMeal.meal_id, items)}
           onMoveMealType={(newType) => onMoveMealType(currentDetailMeal.meal_id, newType)}
           onUpdateTimestamp={(newTs) => onUpdateMealTimestamp(currentDetailMeal.meal_id, newTs)}
+          onUpdateContextNote={(note) => onUpdateContextNote(currentDetailMeal.meal_id, note)}
           onDismiss={() => setDetailMeal(null)}
         />
       )}
@@ -265,6 +267,7 @@ function MealDetailSheet({
   onUpdate,
   onMoveMealType,
   onUpdateTimestamp,
+  onUpdateContextNote,
   onDismiss,
 }: {
   entry: MealEntry;
@@ -272,10 +275,17 @@ function MealDetailSheet({
   onUpdate: (items: MealItem[]) => void;
   onMoveMealType: (newType: MealType) => void;
   onUpdateTimestamp: (newTimestamp: string) => void;
+  onUpdateContextNote: (note: string) => void;
   onDismiss: () => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [editedItems, setEditedItems] = useState<MealItem[]>([...entry.items]);
+  const [contextNote, setContextNote] = useState(entry.context_note ?? "");
+
+  // Keep contextNote in sync if entry.context_note changes externally
+  useEffect(() => {
+    setContextNote(entry.context_note ?? "");
+  }, [entry.context_note]);
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [addingFood, setAddingFood] = useState(false);
   const [addFoodText, setAddFoodText] = useState("");
@@ -598,6 +608,23 @@ function MealDetailSheet({
             )}
           </div>
         )}
+
+        {/* Context note — always editable, saves on blur */}
+        <div className="mb-4">
+          <input
+            type="text"
+            value={contextNote}
+            onChange={(e) => setContextNote(e.target.value)}
+            onBlur={() => onUpdateContextNote(contextNote.trim())}
+            placeholder="Anything worth noting? (e.g. eating at a wedding, MIL cooking this week)"
+            className="w-full rounded-xl px-3 py-2.5 text-sm outline-none border-0"
+            style={{
+              backgroundColor: "#f5ede5",
+              color: "#3D3D3D",
+              caretColor: "#C4633A",
+            }}
+          />
+        </div>
 
         {/* Action buttons */}
         {editing ? (

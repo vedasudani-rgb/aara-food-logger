@@ -226,6 +226,13 @@ function DayView({ date }: { date: string }) {
     [updateMeal]
   );
 
+  const handleUpdateContextNote = useCallback(
+    (meal_id: string, note: string) => {
+      updateMeal(meal_id, { context_note: note || undefined });
+    },
+    [updateMeal]
+  );
+
   const weekStr = dateToISOWeek(date);
   const nextDay = nextDate(date);
   const canGoForward = nextDay <= today;
@@ -324,6 +331,7 @@ function DayView({ date }: { date: string }) {
           onUpdateMeal={handleUpdateMeal}
           onMoveMealType={handleMoveMealType}
           onUpdateMealTimestamp={handleUpdateMealTimestamp}
+          onUpdateContextNote={handleUpdateContextNote}
         />
       </div>
 
