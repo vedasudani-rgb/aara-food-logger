@@ -1,4 +1,4 @@
-# AI Food Logger — Current State (as of April 2026)
+# AI Food Logger — Current State (as of April 16, 2026)
 
 **Thesis:** Capture anything, forgive everything, surface pattern not precision. Voice-first, guilt-free, South Indian food–aware.
 **User:** Megha (Chennai, vegetarian, home-cooked South Indian). **Coach:** Kavitha (needs behavioral signal, not calorie precision).
@@ -152,12 +152,14 @@ Size selector (small/medium/large) is shown for ALL editor types.
 
 ## `/api/parse-meal` — Routing logic
 Three classifiers run on every input:
-1. `isBehavioralQuestion()` — regex patterns: "how am I doing", "am I doing okay", "how.*eating", etc.
+1. `isBehavioralQuestion()` — regex patterns: "how am I doing", "am I doing okay", "how.*eating", "am I eating well", "is my diet okay", etc.
 2. `isFoodQuestion()` — ends with `?`, "how much/many", "what is/are", nutrient keywords. If also matches meal-log hints AND no `?` AND short → treated as log, not question.
 3. Everything else → `parseMeal()`
 
 Priority: food question (if not behavioral) → behavioral → meal parse.
 Client passes `recentMeals` array for behavioral questions (localStorage is browser-only).
+
+**Known crash pattern (fixed):** When the LLM returns a clarification-only response (`{"clarification_needed": "..."}` with no other fields), `parsedMeal.context` is `undefined`. `ConfirmationCard` now guards `contextLabel` and `completenessLabel` with a truthiness check before `.replace()`. Both page files also use `Array.isArray(data.items)` guard when spreading items. `NutritionWizard` checks `res.ok` before reading the response body.
 
 ## Coach Dashboard (`app/coach/page.tsx`)
 All UI is inlined — no separate CoachDashboard component. Components:
@@ -180,7 +182,7 @@ All UI is inlined — no separate CoachDashboard component. Components:
 
 ## Features beyond original spec
 - **Ask Aara (NutritionWizard):** Floating FAB on all pages. Food Q&A (e.g. "protein in 1 dosa") → Groq answer. Behavioral ("how am I doing?") → warm Groq narrative using last 14 days of meals from localStorage.
-- **Snack nudge (SnackNudge):** Shown 3:30–7:30pm IST. Multi-select chips (filter coffee, tea, murukku, biscuits, bajji, vada, sundal, banana). Confirm logs all selected. "Preview 4pm snack nudge" button outside window for demo.
+- **Snack nudge (SnackNudge):** Shown 3:30–7:30pm IST. Multi-select chips (filter coffee, tea, murukku, biscuits, bajji, vada, sundal, banana). Confirm logs all selected. "Preview 4pm snack nudge" button outside window for demo — collapsed by default, expands on click. `forceShow` prop removed from home page call.
 - **Drag-and-drop:** Meal cards in `MealTimeline` are draggable between slots. Drop target highlights with dashed orange border.
 - **Time hint extraction:** "I had lunch at 1pm" → `time_hint: "13:00"` → `timestamp_meal` back-dated, `logged_late: true` if in the past. Meal type also inferred from time if not stated.
 - **Editable timestamp:** In `MealDetailSheet`, tap the logged time to get an `<input type="time">` picker. Saves via `onUpdateTimestamp`.
@@ -205,7 +207,7 @@ All UI is inlined — no separate CoachDashboard component. Components:
 **History nav:** `/day/YYYY-MM-DD` and `/week/YYYY-Www`. Future dates: input bar hidden. Past dates: `logged_late:true`. Back limit: 90 days.
 
 ## Seed Data (`lib/seedData.ts`)
-April 1–15, 2026 (15 days). Covers: festival (Puthandu Apr 14), social occasion, restaurant, high-protein meals, approximate portions. Seeded on first load of home page and coach page via `seedMockData()`. Checks `localStorage` before writing to avoid overwriting real data (key: `seed:v1` flag).
+April 1–16, 2026 (16 days). Covers: festival (Puthandu Apr 14), social occasion, restaurant, high-protein meals, approximate portions. Apr 15 has 3 full meals; Apr 16 has breakfast only (simulates today-in-progress). Seeded on first load of home page and coach page via `seedMockData()`. Current seed version: `v3` (key: `aara_seed_version`). Bumping the version constant forces a full re-seed on next load.
 
 ## Env Vars Required
 ```
