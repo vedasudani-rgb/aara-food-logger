@@ -81,6 +81,7 @@ function DayView({ date }: { date: string }) {
   const [rawInput, setRawInput] = useState("");
   const [pendingMealType, setPendingMealType] = useState<MealType>(inferMealType);
   const [parseError, setParseError] = useState<string | null>(null);
+  const [contextNote, setContextNote] = useState("");
 
   const handleTranscript = useCallback(async (text: string) => {
     setRawInput(text);
@@ -149,11 +150,13 @@ function DayView({ date }: { date: string }) {
         ? "self_reported"
         : "estimated",
       edited_by_user: editedItems.some((i) => i.edited_by_user),
+      ...(contextNote.trim() ? { context_note: contextNote.trim() } : {}),
     };
     saveMeal(entry);
     setParsedMeal(null);
     setEditedItems([]);
     setRawInput("");
+    setContextNote("");
     setParseError(null);
     setPendingMealType(inferMealType());
   };
@@ -161,6 +164,7 @@ function DayView({ date }: { date: string }) {
   const handleDismiss = () => {
     setParsedMeal(null);
     setEditedItems([]);
+    setContextNote("");
     setParseError(null);
     setPendingMealType(inferMealType());
   };
@@ -359,6 +363,7 @@ function DayView({ date }: { date: string }) {
           rawInput={rawInput}
           items={editedItems}
           mealType={pendingMealType}
+          contextNote={contextNote}
           onMealTypeChange={setPendingMealType}
           onItemChange={handleItemChange}
           onItemRemove={handleItemRemove}
@@ -366,6 +371,7 @@ function DayView({ date }: { date: string }) {
           onConfirm={handleConfirm}
           onDismiss={handleDismiss}
           onReparse={handleReparse}
+          onContextNoteChange={setContextNote}
         />
       )}
 

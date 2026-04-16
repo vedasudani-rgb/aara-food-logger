@@ -16,6 +16,7 @@ interface ConfirmationCardProps {
   rawInput: string;
   items: MealItem[];
   mealType: MealType;
+  contextNote: string;
   onMealTypeChange: (type: MealType) => void;
   onItemChange: (idx: number, updated: MealItem) => void;
   onItemRemove: (idx: number) => void;
@@ -23,6 +24,7 @@ interface ConfirmationCardProps {
   onConfirm: () => void;
   onDismiss: () => void;
   onReparse: (newInput: string) => void;
+  onContextNoteChange: (note: string) => void;
 }
 
 export function ConfirmationCard({
@@ -30,6 +32,7 @@ export function ConfirmationCard({
   rawInput,
   items,
   mealType,
+  contextNote,
   onMealTypeChange,
   onItemChange,
   onItemRemove,
@@ -37,6 +40,7 @@ export function ConfirmationCard({
   onConfirm,
   onDismiss,
   onReparse,
+  onContextNoteChange,
 }: ConfirmationCardProps) {
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [editingInput, setEditingInput] = useState(false);
@@ -376,6 +380,22 @@ export function ConfirmationCard({
             + Add a missing food
           </button>
         )}
+      </div>
+
+      {/* Optional context note */}
+      <div className="mb-4">
+        <input
+          type="text"
+          value={contextNote}
+          onChange={(e) => onContextNoteChange(e.target.value)}
+          placeholder="Anything worth noting? (e.g. eating at a wedding, MIL cooking this week)"
+          className="w-full rounded-xl px-3 py-2.5 text-sm outline-none border-0"
+          style={{
+            backgroundColor: "#f5ede5",
+            color: "#3D3D3D",
+            caretColor: "#C4633A",
+          }}
+        />
       </div>
 
       {/* Confirm */}

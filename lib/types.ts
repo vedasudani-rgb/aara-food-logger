@@ -57,6 +57,7 @@ export interface MealEntry {
   completeness: Completeness;
   quantity_certainty: QuantityCertainty;
   edited_by_user: boolean;
+  context_note?: string;
 }
 
 export interface UserProfile {

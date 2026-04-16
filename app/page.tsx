@@ -52,6 +52,7 @@ export default function HomePage() {
   const [slotTapped, setSlotTapped] = useState(false);
   const [reengagementMsg, setReengagementMsg] = useState<string | null>(null);
   const [parseError, setParseError] = useState<string | null>(null);
+  const [contextNote, setContextNote] = useState("");
 
   // Seed mock data on first load
   useEffect(() => {
@@ -162,12 +163,14 @@ export default function HomePage() {
         ? "self_reported"
         : "estimated",
       edited_by_user: editedItems.some((i) => i.edited_by_user),
+      ...(contextNote.trim() ? { context_note: contextNote.trim() } : {}),
     };
 
     saveMeal(entry);
     setParsedMeal(null);
     setEditedItems([]);
     setRawInput("");
+    setContextNote("");
     setReengagementMsg(null);
     setSlotTapped(false);
     setParseError(null);
@@ -177,6 +180,7 @@ export default function HomePage() {
   const handleDismiss = () => {
     setParsedMeal(null);
     setEditedItems([]);
+    setContextNote("");
     setSlotTapped(false);
     setParseError(null);
     setPendingMealType(inferMealType());
@@ -375,6 +379,7 @@ export default function HomePage() {
           rawInput={rawInput}
           items={editedItems}
           mealType={pendingMealType}
+          contextNote={contextNote}
           onMealTypeChange={setPendingMealType}
           onItemChange={handleItemChange}
           onItemRemove={handleItemRemove}
@@ -382,6 +387,7 @@ export default function HomePage() {
           onConfirm={handleConfirm}
           onDismiss={handleDismiss}
           onReparse={handleReparse}
+          onContextNoteChange={setContextNote}
         />
       )}
 

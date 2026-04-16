@@ -1,4 +1,4 @@
-# AI Food Logger — Current State (as of April 16, 2026, last updated April 16, 2026 — v3)
+# AI Food Logger — Current State (as of April 16, 2026, last updated April 16, 2026 — v4)
 
 **Thesis:** Capture anything, forgive everything, surface pattern not precision. Voice-first, guilt-free, South Indian food–aware.
 **User:** Megha (Chennai, vegetarian, home-cooked South Indian). **Coach:** Kavitha (needs behavioral signal, not calorie precision).
@@ -87,6 +87,7 @@ interface MealEntry {
   completeness: "complete"|"approximate"|"partial"
   quantity_certainty: "shared_bowl"|"self_reported"|"estimated"
   edited_by_user: boolean
+  context_note?: string        // optional free-text note from Megha (e.g. "at a wedding", "MIL cooking")
 }
 interface ParsedMeal {      // returned by /api/parse-meal
   items: MealItem[]
@@ -189,6 +190,9 @@ All UI is inlined — no separate CoachDashboard component. Components:
 **Timing computation:** single `computeTimingDetails()` function feeds both the display cards and the `CoachSummaryInput` sent to the API — no divergence.
 
 ## Features beyond original spec
+- **Retroactive log flagging (coach only):** `DayBreakdown` in `app/coach/page.tsx` now shows individual meal rows per day. Meals with `logged_late: true` show a muted "logged after the fact" tag so Kavitha can calibrate portion trust. `context_note` (if set) displays as an italic muted line beneath the meal row.
+- **Tiered re-engagement messages:** `/api/reengagement` prompt is now tiered by gap: 4–8 days = warm, low-key; 9+ days = warmest, zero guilt, forward-looking. Message shown on `app/page.tsx` only when gap > 3 days (unchanged threshold).
+- **Context note for Megha:** Optional free-text `context_note` field on `MealEntry`. ConfirmationCard shows an "Add context" input below the chip list (placeholder: "Anything worth noting?"). Saved with the meal entry to localStorage. Surfaced in coach `DayBreakdown` as italic muted text.
 - **Ask Aara (NutritionWizard):** Floating FAB on all pages. Food Q&A (e.g. "protein in 1 dosa") → Groq answer. Behavioral ("how am I doing?") → warm Groq narrative using last 14 days of meals from localStorage.
 - **Snack nudge (SnackNudge):** Accordion pill — always shows as a collapsed header row (bg #f5ede5, border #e8d4c4). During 3:30–7:30pm IST shows "Around 4pm — anything?"; outside window shows "Preview 4pm snack nudge". Clicking the header expands to show multi-select chips + confirm button. "Not now" permanently dismisses during live window; "Close" just collapses during preview. `forceShow` prop removed entirely.
 - **Drag-and-drop:** Meal cards in `MealTimeline` are draggable between slots. Drop target highlights with dashed orange border.
@@ -205,7 +209,7 @@ All UI is inlined — no separate CoachDashboard component. Components:
 
 **Calories:** Hidden in all Megha-facing views. Coach view only: calorie ranges chart (min–max band + point estimate dot per day). Labeled "Rough estimates — not clinical-grade."
 
-**No streaks.** "X days logged this week" shown in week view. Coach: 4+ days minimum for full analysis. Re-entry: no gap ceremony. Language: "Tell me what you had" (not "Log your meal").
+**No streaks.** "X days logged this week" shown in week view. Coach: 4+ days minimum for full analysis. Re-entry: no gap ceremony. Re-engagement messages shown only when gap > 3 days, tiered by gap length (4–8 days: warm; 9+: warmest, forward-looking). Language: "Tell me what you had" (not "Log your meal").
 
 **Coach view states:**
 - 0 days: "No meals logged yet. Patterns visible after 4 logged days."

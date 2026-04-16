@@ -771,39 +771,74 @@ function MealTimingCard({ timingDetails }: { timingDetails: TimingDetails }) {
 
 // ── Day breakdown ─────────────────────────────────────────────────────────────
 
+function mealTimeLabel(meal: MealEntry): string {
+  const ts = meal.timestamp_meal || meal.timestamp_logged;
+  if (!ts) return "";
+  const min = extractISTMinutes(ts);
+  return min !== null ? minutesToTimeStr(min) : "";
+}
+
 function DayBreakdown({ days }: { days: DayData[] }) {
   return (
     <div className="rounded-2xl px-4 py-4" style={{ backgroundColor: "#fff", border: "1px solid #f0e8de" }}>
       <p className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: "#3D3D3D", opacity: 0.4 }}>
         Day-by-day
       </p>
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-3">
         {days.map((d) => {
           const count = d.meals.length;
           const isFull = count >= 3;
           const hasAny = count > 0;
           return (
-            <Link key={d.date} href={`/day/${d.date}`} className="flex items-center gap-3">
-              <div
-                className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold shrink-0"
-                style={{
-                  backgroundColor: isFull ? "#C4633A" : hasAny ? "#f5ede5" : "#f0e8de",
-                  color: isFull ? "#fff" : hasAny ? "#C4633A" : "#3D3D3D",
-                  opacity: hasAny ? 1 : 0.4,
-                }}
-              >
-                {count > 0 ? count : "·"}
-              </div>
-              <span className="text-sm w-8 shrink-0" style={{ color: "#3D3D3D", opacity: hasAny ? 0.7 : 0.35 }}>
-                {shortDayName(d.date)}
-              </span>
-              <span className="text-sm flex-1" style={{ color: "#3D3D3D", opacity: hasAny ? 0.9 : 0.35 }}>
-                {shortDateLabel(d.date)}
-              </span>
-              <span className="text-xs" style={{ color: hasAny ? "#C4633A" : "#3D3D3D", opacity: hasAny ? 0.7 : 0.3 }}>
-                {count > 0 ? `${count} meal${count !== 1 ? "s" : ""}` : "—"}
-              </span>
-            </Link>
+            <div key={d.date} className="flex flex-col gap-1">
+              {/* Day header row */}
+              <Link href={`/day/${d.date}`} className="flex items-center gap-3">
+                <div
+                  className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold shrink-0"
+                  style={{
+                    backgroundColor: isFull ? "#C4633A" : hasAny ? "#f5ede5" : "#f0e8de",
+                    color: isFull ? "#fff" : hasAny ? "#C4633A" : "#3D3D3D",
+                    opacity: hasAny ? 1 : 0.4,
+                  }}
+                >
+                  {count > 0 ? count : "·"}
+                </div>
+                <span className="text-sm w-8 shrink-0" style={{ color: "#3D3D3D", opacity: hasAny ? 0.7 : 0.35 }}>
+                  {shortDayName(d.date)}
+                </span>
+                <span className="text-sm flex-1" style={{ color: "#3D3D3D", opacity: hasAny ? 0.9 : 0.35 }}>
+                  {shortDateLabel(d.date)}
+                </span>
+                <span className="text-xs" style={{ color: hasAny ? "#C4633A" : "#3D3D3D", opacity: hasAny ? 0.7 : 0.3 }}>
+                  {count > 0 ? `${count} meal${count !== 1 ? "s" : ""}` : "—"}
+                </span>
+              </Link>
+
+              {/* Per-meal details */}
+              {d.meals.map((meal) => (
+                <div key={meal.meal_id} className="pl-9 flex flex-col gap-0.5">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs capitalize" style={{ color: "#3D3D3D", opacity: 0.6 }}>
+                      {meal.meal_type}
+                      {mealTimeLabel(meal) ? ` · ${mealTimeLabel(meal)}` : ""}
+                    </span>
+                    {meal.logged_late && (
+                      <span
+                        className="text-xs rounded-full px-2 py-0.5 font-medium"
+                        style={{ backgroundColor: "#f0e8de", color: "#3D3D3D", opacity: 0.65 }}
+                      >
+                        logged after the fact
+                      </span>
+                    )}
+                  </div>
+                  {meal.context_note && (
+                    <p className="text-xs italic leading-snug" style={{ color: "#3D3D3D", opacity: 0.5 }}>
+                      {meal.context_note}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
           );
         })}
       </div>

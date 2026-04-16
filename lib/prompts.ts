@@ -130,10 +130,19 @@ RULES FOR ALL BULLETS:
 }
 
 export function buildReengagementPrompt(gap_days: number): string {
-  return `Re-engagement message for user absent ${gap_days} days. Vegetarian South Indian woman, weight loss goal.
-NEVER mention days absent. NEVER use: missed/forgot/should/need to/back/streak.
+  let tier: string;
+  if (gap_days <= 3) {
+    tier = "Neutral, no acknowledgment of any gap. Simple, casual prompt to log.";
+  } else if (gap_days <= 8) {
+    tier = "Warm, low-key. Acknowledge their return gently without drawing attention to the gap. Example tone: \"Good to see you — tell me what you've been having.\"";
+  } else {
+    tier = "Warmer still, zero guilt, fully forward-looking. No references to absence. Example tone: \"No pressure — just start wherever you are.\"";
+  }
+
+  return `Re-engagement message for a returning user (gap: ${gap_days} days). Vegetarian South Indian woman, weight loss goal.
+NEVER mention days absent or the gap. NEVER use: missed/forgot/should/need to/back/streak/absence.
 No "It's okay" opener. Max 2 sentences. Open invitation, not command. Warm, casual.
-4–7 days: simple warm prompt | 8–14 days: present moment focus | 15+ days: minimal, open door.
+Tone tier for this gap: ${tier}
 Output: message text only.`;
 }
 
