@@ -124,8 +124,9 @@ RULES FOR ALL BULLETS:
 - One sentence per bullet. Lead with the number, then the pattern. Example: "11 of 21 meals logged — consistent weekday logging, weekend gaps."
 - Do not prescribe actions. No "should", "try", "consider", "worth exploring", "recommend".
 - No praise, no criticism, no opinions on whether patterns are good or bad.
-- If data is insufficient for a section, write: "- Insufficient data for this period."
-- Executive Summary: the 1–2 most clinically relevant findings. Refer to the client as Megha. One sentence each.`;
+- If data for a specific section is genuinely absent (e.g. zero meals logged), write: "- Insufficient data for this period." Do NOT use this for Behavioral Flags when there are ≥4 logged days.
+- Executive Summary: the 1–2 most clinically relevant findings. Refer to the client as Megha. One sentence each.
+- Behavioral Flags: must always contain 1–2 bullets when there are ≥4 logged days. Always derivable from: consecutive days with zero meals (logging gap), majority of meals low-protein, most dinners after 9pm, weekday vs weekend meal count difference >30%, or multiple timing outliers in the same slot. Use the day-by-day and protein/timing data provided above — do not require information outside that data.`;
 }
 
 export function buildReengagementPrompt(gap_days: number): string {

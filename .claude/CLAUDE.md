@@ -1,4 +1,4 @@
-# AI Food Logger — Current State (as of April 16, 2026, last updated April 16, 2026)
+# AI Food Logger — Current State (as of April 16, 2026, last updated April 16, 2026 — v2)
 
 **Thesis:** Capture anything, forgive everything, surface pattern not precision. Voice-first, guilt-free, South Indian food–aware.
 **User:** Megha (Chennai, vegetarian, home-cooked South Indian). **Coach:** Kavitha (needs behavioral signal, not calorie precision).
@@ -163,6 +163,9 @@ Client passes `recentMeals` array for behavioral questions (localStorage is brow
 - When the LLM returns a clarification-only response (`{"clarification_needed": "..."}` with no other fields), `parsedMeal.context` is `undefined`. `ConfirmationCard` now guards `contextLabel` and `completenessLabel` with a truthiness check before `.replace()`. Both page files also use `Array.isArray(data.items)` guard when spreading items — including in `handleReparse` (previously missing). `NutritionWizard` checks `res.ok` before reading the response body.
 - "I had a typical rice meal" / "I had a rice meal at home" were sometimes returned as `clarification_needed` by the LLM. Fixed by strengthening Rule 2 in `PARSE_MEAL_PROMPT` to be explicit about all common "rice meal" phrasings.
 - `handleReparse` in both `app/page.tsx` and `app/day/[date]/page.tsx` lacked the `Array.isArray(data.items)` guard, which could throw if the LLM returned a clarification-only response. Fixed.
+- Coach summary Behavioral Flags section was returning "Insufficient data" even with 16 days of data. Fixed by adding explicit behavioral flag derivation rules to `buildCoachSummaryPrompt` (gaps, low protein majority, late dinners, weekday/weekend divergence).
+- `handleTranscript` in `app/page.tsx` had an empty `[]` useCallback deps array, causing a stale `slotTapped` closure. Slot-tapped meal type was always overridden by the LLM's guess. Fixed by adding `slotTapped` to the deps array.
+- API parse failures were silently swallowed. Both `app/page.tsx` and `app/day/[date]/page.tsx` now expose a `parseError` state shown near the input bar.
 
 ## Coach Dashboard (`app/coach/page.tsx`)
 All UI is inlined — no separate CoachDashboard component. Components:
@@ -185,7 +188,7 @@ All UI is inlined — no separate CoachDashboard component. Components:
 
 ## Features beyond original spec
 - **Ask Aara (NutritionWizard):** Floating FAB on all pages. Food Q&A (e.g. "protein in 1 dosa") → Groq answer. Behavioral ("how am I doing?") → warm Groq narrative using last 14 days of meals from localStorage.
-- **Snack nudge (SnackNudge):** Shown 3:30–7:30pm IST. Multi-select chips (filter coffee, tea, murukku, biscuits, bajji, vada, sundal, banana). Confirm logs all selected. "Preview 4pm snack nudge" button outside window for demo — collapsed by default, styled as a visible pill (bg #f5ede5, no opacity fade), expands on click. `forceShow` prop removed from home page call.
+- **Snack nudge (SnackNudge):** Accordion pill — always shows as a collapsed header row (bg #f5ede5, border #e8d4c4). During 3:30–7:30pm IST shows "Around 4pm — anything?"; outside window shows "Preview 4pm snack nudge". Clicking the header expands to show multi-select chips + confirm button. "Not now" permanently dismisses during live window; "Close" just collapses during preview. `forceShow` prop removed entirely.
 - **Drag-and-drop:** Meal cards in `MealTimeline` are draggable between slots. Drop target highlights with dashed orange border.
 - **Time hint extraction:** "I had lunch at 1pm" → `time_hint: "13:00"` → `timestamp_meal` back-dated, `logged_late: true` if in the past. Meal type also inferred from time if not stated.
 - **Editable timestamp:** In `MealDetailSheet`, tap the logged time to get an `<input type="time">` picker. Saves via `onUpdateTimestamp`.

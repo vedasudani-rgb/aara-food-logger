@@ -80,11 +80,13 @@ function DayView({ date }: { date: string }) {
   const [editedItems, setEditedItems] = useState<MealItem[]>([]);
   const [rawInput, setRawInput] = useState("");
   const [pendingMealType, setPendingMealType] = useState<MealType>(inferMealType);
+  const [parseError, setParseError] = useState<string | null>(null);
 
   const handleTranscript = useCallback(async (text: string) => {
     setRawInput(text);
     setIsLoading(true);
     setParsedMeal(null);
+    setParseError(null);
     try {
       const res = await fetch("/api/parse-meal", {
         method: "POST",
@@ -102,7 +104,7 @@ function DayView({ date }: { date: string }) {
         setPendingMealType(data.meal_type as MealType);
       }
     } catch {
-      // silently fail — user can retype
+      setParseError("Couldn't parse that — try again.");
     } finally {
       setIsLoading(false);
     }
@@ -152,12 +154,14 @@ function DayView({ date }: { date: string }) {
     setParsedMeal(null);
     setEditedItems([]);
     setRawInput("");
+    setParseError(null);
     setPendingMealType(inferMealType());
   };
 
   const handleDismiss = () => {
     setParsedMeal(null);
     setEditedItems([]);
+    setParseError(null);
     setPendingMealType(inferMealType());
   };
 
@@ -328,6 +332,11 @@ function DayView({ date }: { date: string }) {
           {isPast && (
             <p className="text-xs" style={{ color: "#3D3D3D", opacity: 0.4 }}>
               Adding to {new Date(date + "T00:00:00").toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })}
+            </p>
+          )}
+          {parseError && (
+            <p className="text-xs" style={{ color: "#C4633A", opacity: 0.75 }}>
+              {parseError}
             </p>
           )}
           <VoiceLogButton

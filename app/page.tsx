@@ -51,6 +51,7 @@ export default function HomePage() {
   const [pendingMealType, setPendingMealType] = useState<MealType>(inferMealType);
   const [slotTapped, setSlotTapped] = useState(false);
   const [reengagementMsg, setReengagementMsg] = useState<string | null>(null);
+  const [parseError, setParseError] = useState<string | null>(null);
 
   // Seed mock data on first load
   useEffect(() => {
@@ -75,6 +76,7 @@ export default function HomePage() {
     setRawInput(text);
     setIsLoading(true);
     setParsedMeal(null);
+    setParseError(null);
 
     try {
       const res = await fetch("/api/parse-meal", {
@@ -103,11 +105,11 @@ export default function HomePage() {
       setEditedItems(Array.isArray(data.items) ? [...data.items] : []);
       setSlotTapped(false);
     } catch {
-      // silently fail — user can retype
+      setParseError("Couldn't parse that — try again.");
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [slotTapped]);
 
   const { isRecording, inputMode, startRecording, stopRecording, switchToText, setInputMode } =
     useVoiceInput({ onTranscript: handleTranscript });
@@ -168,6 +170,7 @@ export default function HomePage() {
     setRawInput("");
     setReengagementMsg(null);
     setSlotTapped(false);
+    setParseError(null);
     setPendingMealType(inferMealType());
   };
 
@@ -175,6 +178,7 @@ export default function HomePage() {
     setParsedMeal(null);
     setEditedItems([]);
     setSlotTapped(false);
+    setParseError(null);
     setPendingMealType(inferMealType());
   };
 
@@ -343,6 +347,11 @@ export default function HomePage() {
         className="sticky bottom-0 py-6 flex flex-col items-center gap-2"
         style={{ backgroundColor: "#FBF7F0", borderTop: "1px solid #f0e8de" }}
       >
+        {parseError && (
+          <p className="text-xs mb-1" style={{ color: "#C4633A", opacity: 0.75 }}>
+            {parseError}
+          </p>
+        )}
         <VoiceLogButton
           isRecording={isRecording}
           isLoading={isLoading}
