@@ -175,7 +175,7 @@ function DayView({ date }: { date: string }) {
       const data: ParsedMeal = await res.json();
       if (data.food_answer || data.behavioral_response) return;
       setParsedMeal(data);
-      setEditedItems([...data.items]);
+      setEditedItems(Array.isArray(data.items) ? [...data.items] : []);
     } catch {
       // silently fail
     } finally {

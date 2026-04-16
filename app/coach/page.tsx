@@ -490,12 +490,15 @@ function FullDashboard({
         {summaryError && (
           <div className="flex flex-col gap-2">
             <p className="text-sm" style={{ color: "#3D3D3D", opacity: 0.5 }}>Could not generate summary.</p>
-            <button onClick={onRetry} className="text-sm font-medium self-start" style={{ color: "#C4633A" }}>Retry</button>
+            <button onClick={onRetry} className="text-sm font-semibold self-start rounded-xl px-3 py-1.5" style={{ color: "#fff", backgroundColor: "#C4633A" }}>Retry</button>
           </div>
         )}
         {summary && <MarkdownSummary text={summary} />}
         {!summary && !summaryLoading && !summaryError && (
-          <p className="text-sm" style={{ color: "#3D3D3D", opacity: 0.4 }}>No summary yet.</p>
+          <div className="flex flex-col gap-2">
+            <p className="text-sm" style={{ color: "#3D3D3D", opacity: 0.4 }}>Summary not yet generated.</p>
+            <button onClick={onRetry} className="text-sm font-semibold self-start rounded-xl px-3 py-1.5" style={{ color: "#fff", backgroundColor: "#C4633A" }}>Generate summary</button>
+          </div>
         )}
       </Card>
     </div>

@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     const summary = await callGroq(
       "You are a clinical nutrition coach assistant. Generate precise, data-driven summaries.",
       prompt,
-      { temperature: 0.2, maxTokens: 800 }
+      { temperature: 0.2, maxTokens: 1200 }
     );
 
     return NextResponse.json({ summary });

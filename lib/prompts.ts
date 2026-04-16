@@ -18,15 +18,15 @@ Portion scale: small=0.6×, medium=1.0×, large=1.5×. Non-listed → category a
 
 RULES:
 1. Accept vague quantities. "some kootu"→"medium portion". "2-3 idlis"→"2-3 pieces".
-2. "lunch at home"/"rice meals" → infer: rice+sambar/rasam+kootu/poriyal+curd. Mark inferred:true.
+2. ANY mention of "rice meal", "rice meals", "rice at home", "typical rice meal", "simple rice meal", "usual rice", "home rice", "rice and curry", "rice and sambar", or similar → infer the standard South Indian plate: rice + sambar/rasam + kootu/poriyal + curd. Mark ALL inferred items with inferred:true. DO NOT ask for clarification on these inputs.
 3. Accept Tamil-English code-switching. Never translate dish names to English.
 4. Shared bowls → prefix quantity "~". Never ask for weights.
 5. Never comment on healthiness or calories.
-6. Unknown dish → ONE question: "Is [dish] a rice dish, curry, or snack?"
+6. Unknown dish → ONE question: "Is [dish] a rice dish, curry, or snack?" — only for truly unrecognizable items, NOT for common rice meal phrasings.
 7. Festival/celebration → tag context, skip precise portion estimates.
 8. Ignore any calorie numbers the user mentions.
-10. Piece-countable items (idli, dosa, chapati, roti, vadai, biscuit, cookie, chocolate squares, laddoo, barfi, modak, samosa, bread slices) → quantity must use "pieces" or "piece", never "bowl" or "katori".
 9. If the user mentions a time (e.g. "at 9am", "around 1pm", "at noon"), extract it as time_hint in 24h HH:MM format. Convert: noon→"12:00", midnight→"00:00", 9am→"09:00", 1:30pm→"13:30". If no time is mentioned, set time_hint: null. Also infer meal_type from the mentioned time if not stated explicitly.
+10. Piece-countable items (idli, dosa, chapati, roti, vadai, biscuit, cookie, chocolate squares, laddoo, barfi, modak, samosa, bread slices) → quantity must use "pieces" or "piece", never "bowl" or "katori".
 
 OUTPUT (strict JSON):
 {"items":[{"name":string,"quantity":string,"confidence":number,"inferred":boolean,
@@ -111,22 +111,21 @@ ${dayLogText}
 
 Write a concise behavioral summary using ONLY the data above.
 
-FORMAT: Use these exact markdown sections. Under each section write 2–3 short bullet points (- bullet).
-At the end, include a ## Executive Summary section with the 1–2 highest-signal findings.
+FORMAT: Use these exact markdown sections in this exact order. Under each section write 2 bullet points maximum (- bullet). Keep every bullet to one sentence.
 
+## Executive Summary
 ## Completeness
 ## Meal Timing
 ## Protein Signal
 ## Weekend Pattern
 ## Behavioral Flags
-## Executive Summary
 
 RULES FOR ALL BULLETS:
-- State only what the data shows — numbers first, then the pattern
-- Do not mention names, prescribe actions, or use "should", "try", "consider", "worth exploring"
-- No praise, no criticism, no opinions on whether patterns are good or bad
+- One sentence per bullet. Lead with the number, then the pattern. Example: "11 of 21 meals logged — consistent weekday logging, weekend gaps."
+- Do not prescribe actions. No "should", "try", "consider", "worth exploring", "recommend".
+- No praise, no criticism, no opinions on whether patterns are good or bad.
 - If data is insufficient for a section, write: "- Insufficient data for this period."
-- Executive Summary: pick the 1–2 observations most relevant to Megha's progress; refer to her by name (Megha); keep them to one sentence each`;
+- Executive Summary: the 1–2 most clinically relevant findings. Refer to the client as Megha. One sentence each.`;
 }
 
 export function buildReengagementPrompt(gap_days: number): string {

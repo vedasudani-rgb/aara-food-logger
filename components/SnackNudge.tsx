@@ -49,8 +49,8 @@ export function SnackNudge({ meals, onQuickAdd, forceShow = false }: SnackNudgeP
         <div className="flex justify-center mt-1 mb-2">
           <button
             onClick={() => { setDemoOpen(true); setSelectedSnacks([]); }}
-            className="text-xs rounded-full px-3 py-1"
-            style={{ color: "#C4633A", opacity: 0.45, border: "1px dashed #e5e0d8" }}
+            className="text-xs rounded-full px-3 py-1.5 font-medium"
+            style={{ color: "#C4633A", backgroundColor: "#f5ede5", border: "1px solid #e8d4c4" }}
           >
             Preview 4pm snack nudge
           </button>

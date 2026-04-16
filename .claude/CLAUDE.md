@@ -1,4 +1,4 @@
-# AI Food Logger — Current State (as of April 16, 2026)
+# AI Food Logger — Current State (as of April 16, 2026, last updated April 16, 2026)
 
 **Thesis:** Capture anything, forgive everything, surface pattern not precision. Voice-first, guilt-free, South Indian food–aware.
 **User:** Megha (Chennai, vegetarian, home-cooked South Indian). **Coach:** Kavitha (needs behavioral signal, not calorie precision).
@@ -124,11 +124,11 @@ Portion scale: small=0.6×, medium=1.0×, large=1.5×. Non-listed → category a
 
 RULES:
 1. Accept vague quantities. "some kootu"→"medium portion". "2-3 idlis"→"2-3 pieces".
-2. "lunch at home"/"rice meals" → infer: rice+sambar/rasam+kootu/poriyal+curd. Mark inferred:true.
+2. ANY mention of "rice meal", "rice meals", "rice at home", "typical rice meal", "simple rice meal", "usual rice", "home rice", "rice and curry", "rice and sambar", or similar → infer the standard South Indian plate: rice + sambar/rasam + kootu/poriyal + curd. Mark ALL inferred items with inferred:true. DO NOT ask for clarification on these inputs.
 3. Accept Tamil-English code-switching. Never translate dish names to English.
 4. Shared bowls → prefix quantity "~". Never ask for weights.
 5. Never comment on healthiness or calories.
-6. Unknown dish → ONE question: "Is [dish] a rice dish, curry, or snack?"
+6. Unknown dish → ONE question: "Is [dish] a rice dish, curry, or snack?" — only for truly unrecognizable items, NOT for common rice meal phrasings.
 7. Festival/celebration → tag context, skip precise portion estimates.
 8. Ignore any calorie numbers the user mentions.
 9. If the user mentions a time (e.g. "at 9am", "around 1pm", "at noon"), extract it as time_hint in 24h HH:MM format. Convert: noon→"12:00", midnight→"00:00". If no time is mentioned, set time_hint: null.
@@ -159,7 +159,10 @@ Three classifiers run on every input:
 Priority: food question (if not behavioral) → behavioral → meal parse.
 Client passes `recentMeals` array for behavioral questions (localStorage is browser-only).
 
-**Known crash pattern (fixed):** When the LLM returns a clarification-only response (`{"clarification_needed": "..."}` with no other fields), `parsedMeal.context` is `undefined`. `ConfirmationCard` now guards `contextLabel` and `completenessLabel` with a truthiness check before `.replace()`. Both page files also use `Array.isArray(data.items)` guard when spreading items. `NutritionWizard` checks `res.ok` before reading the response body.
+**Known crash patterns (fixed):**
+- When the LLM returns a clarification-only response (`{"clarification_needed": "..."}` with no other fields), `parsedMeal.context` is `undefined`. `ConfirmationCard` now guards `contextLabel` and `completenessLabel` with a truthiness check before `.replace()`. Both page files also use `Array.isArray(data.items)` guard when spreading items — including in `handleReparse` (previously missing). `NutritionWizard` checks `res.ok` before reading the response body.
+- "I had a typical rice meal" / "I had a rice meal at home" were sometimes returned as `clarification_needed` by the LLM. Fixed by strengthening Rule 2 in `PARSE_MEAL_PROMPT` to be explicit about all common "rice meal" phrasings.
+- `handleReparse` in both `app/page.tsx` and `app/day/[date]/page.tsx` lacked the `Array.isArray(data.items)` guard, which could throw if the LLM returned a clarification-only response. Fixed.
 
 ## Coach Dashboard (`app/coach/page.tsx`)
 All UI is inlined — no separate CoachDashboard component. Components:
@@ -175,14 +178,14 @@ All UI is inlined — no separate CoachDashboard component. Components:
 - `ProteinSignalCard` — horizontal bars (high/medium/low), tap bar → side panel with meal list for that level
 - `CalorieRangesCard` — bar+range chart per day, hover/tap for tooltip (est + range)
 - `MealTimingCard` — avg breakfast/lunch/dinner chips, late meals (>11pm) flags, timing outliers (>90 min from avg)
-- `MarkdownSummary` — rendered markdown from Groq `buildCoachSummaryPrompt` call
+- `MarkdownSummary` — rendered markdown from Groq `buildCoachSummaryPrompt` call. Sections in order: Executive Summary (first), Completeness, Meal Timing, Protein Signal, Weekend Pattern, Behavioral Flags. Max 2 bullets per section, one sentence each.
 
-**Timeframe toggle:** 7 or 14 days. Auto-fetches Groq summary when ≥4 days logged. Polls every 60s.
+**Timeframe toggle:** 7 or 14 days. Auto-fetches Groq summary when ≥4 days logged. Polls every 60s. Coach summary API uses maxTokens: 1200. "Generate summary" button available in "no summary" state; "Retry" button in error state (both solid CTA-colored buttons).
 **Timing computation:** single `computeTimingDetails()` function feeds both the display cards and the `CoachSummaryInput` sent to the API — no divergence.
 
 ## Features beyond original spec
 - **Ask Aara (NutritionWizard):** Floating FAB on all pages. Food Q&A (e.g. "protein in 1 dosa") → Groq answer. Behavioral ("how am I doing?") → warm Groq narrative using last 14 days of meals from localStorage.
-- **Snack nudge (SnackNudge):** Shown 3:30–7:30pm IST. Multi-select chips (filter coffee, tea, murukku, biscuits, bajji, vada, sundal, banana). Confirm logs all selected. "Preview 4pm snack nudge" button outside window for demo — collapsed by default, expands on click. `forceShow` prop removed from home page call.
+- **Snack nudge (SnackNudge):** Shown 3:30–7:30pm IST. Multi-select chips (filter coffee, tea, murukku, biscuits, bajji, vada, sundal, banana). Confirm logs all selected. "Preview 4pm snack nudge" button outside window for demo — collapsed by default, styled as a visible pill (bg #f5ede5, no opacity fade), expands on click. `forceShow` prop removed from home page call.
 - **Drag-and-drop:** Meal cards in `MealTimeline` are draggable between slots. Drop target highlights with dashed orange border.
 - **Time hint extraction:** "I had lunch at 1pm" → `time_hint: "13:00"` → `timestamp_meal` back-dated, `logged_late: true` if in the past. Meal type also inferred from time if not stated.
 - **Editable timestamp:** In `MealDetailSheet`, tap the logged time to get an `<input type="time">` picker. Saves via `onUpdateTimestamp`.

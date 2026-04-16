@@ -192,7 +192,7 @@ export default function HomePage() {
       if (!res.ok) throw new Error("parse failed");
       const data: ParsedMeal = await res.json();
       setParsedMeal(data);
-      setEditedItems([...data.items]);
+      setEditedItems(Array.isArray(data.items) ? [...data.items] : []);
     } catch {
       // silently fail
     } finally {
